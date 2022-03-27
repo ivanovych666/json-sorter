@@ -177,3 +177,26 @@ testCases.forEach((testCase, index) => {
         });
     });
 });
+
+const invalidTestCases = [
+    '{} extra content',
+    '"',
+    '"\n',
+    '"\r',
+    '[',
+    '[1,',
+    '[}',
+    '{',
+    '{"a":',
+    '{"a":1,'
+];
+
+describe('Invalid JSON', () => {
+
+    invalidTestCases.forEach((testCase, index) => {
+        it(`TestCase #${index + 1}`, () => {
+            const t = () => jsonSort(testCase);
+            expect(t).toThrow(Error);
+        });
+    });
+});
