@@ -44,6 +44,8 @@ const primitiveValues = [
 ];
 
 const testCases: TestCases = [
+    generateDoNothingTestCase(`""\n\r`),
+    generateDoNothingTestCase(`{\n  "a": 1\n}\n`),
     ...generateDoNothingTestCases([
         ...primitiveValues,
         [],
@@ -167,11 +169,29 @@ const testCases: TestCases = [
     }
 ];
 
+testCases.length = 0;
+testCases.push(
+  generateDoNothingTestCase(`""\n\r`),
+  generateDoNothingTestCase(`{\n  "a": 1\n}\n`),
+  generateDoNothingTestCase(`[
+    {
+        "a": [
+            1,
+            {
+                "b": 2
+            },
+            3
+        ]
+    }
+]
+`),
+);
+
 testCases.forEach((testCase, index) => {
     describe(testCase.name || `Test Case #${index + 1}`, () => {
         testCase.outputs.forEach(({name, output, compare}) => {
             it(name || compare.name, () => {
-                const result = jsonSort(testCase.input, compare);
+                const result = jsonSort(testCase.input, {compare});
                 expect(result).toBe(output);
             });
         });
