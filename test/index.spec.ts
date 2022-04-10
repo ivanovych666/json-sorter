@@ -287,6 +287,30 @@ const testCases: Array<TestCase> = [
             },
         ],
     },
+    {
+        input: `[{"👨🏻‍🚒":1,"b":"👨🏻‍🚒"}]`,
+        outputs: [
+            {
+                output: `[{"b":"👨🏻‍🚒","👨🏻‍🚒":1}]`,
+            },
+        ],
+    },
+    {
+        input: `"&"`,
+        outputs: [
+            {
+                output: `"&"`,
+            },
+        ],
+    },
+    {
+        input: `"\\u0026"`,
+        outputs: [
+            {
+                output: `"\\u0026"`,
+            },
+        ],
+    },
 ];
 
 testCases.forEach((testCase, index) => {
