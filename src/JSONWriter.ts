@@ -25,11 +25,22 @@ export class JSONWriter {
                 bs.substring(1, bs.length - 1)
             );
         });
+        let indent = '';
+        if (options.indent) {
+            if (typeof options.indent === 'number') {
+                indent = ' '.repeat(options.indent);
+            } else {
+                indent = options.indent;
+            }
+        }
         this.options = {
-            indent: typeof options.indent === 'number' ? ' '.repeat(options.indent) : (options.indent || ''),
+            indent,
             newline: options.newline || '',
             finalNewline: options.finalNewline || false,
         };
+        if (this.options.indent && !this.options.newline) {
+            this.options.newline = '\n';
+        }
     }
 
     public write(value: JSONValue): string {

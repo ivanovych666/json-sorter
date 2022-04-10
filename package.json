@@ -11,7 +11,8 @@
     "prebuild": "rm -rf ./dist/*",
     "build": "tsc --build",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest"
+    "test": "jest",
+    "coverage": "jest --coverage"
   },
   "repository": {
     "type": "git",

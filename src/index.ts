@@ -13,7 +13,7 @@ interface JsonSortComparatorOptions {
 interface JsonSortOptions extends JsonSortComparatorOptions, Partial<JsonSortWriterOptions> {}
 
 export const jsonSort = (input: string, options: JsonSortOptions = {}): string => {
-    let compareFunc: Compare<string> | null;
+    let compareFunc: Compare<string>;
 
     let {caseInsensitive, reverse, natural, compare, indent, newline, finalNewline} = options;
     if (typeof compare === 'function') {
@@ -26,10 +26,6 @@ export const jsonSort = (input: string, options: JsonSortOptions = {}): string =
             'Sort',
         ].join('');
         compareFunc = (Comparators as any)[comparatorName];
-    }
-
-    if (!compareFunc) {
-        compareFunc = Comparators.alphabeticalSort;
     }
 
     if (indent == null) {

@@ -108,12 +108,7 @@ export class JSONReader {
     }
 
     private getType(): string {
-        let c: string;
-        try {
-            c = this.input.charAt(this.index);
-        } catch (e) {
-            return "error";
-        }
+        let c = this.input.charAt(this.index);
         if (c == '"') {
             return "string";
         }

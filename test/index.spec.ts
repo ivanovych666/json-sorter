@@ -2,9 +2,19 @@ import {Comparators} from '../src/comparators';
 import {jsonSort} from '../src';
 import {Compare} from '../src/Comparator';
 
+interface SortOptions {
+    caseInsensitive: boolean;
+    reverse: boolean;
+    natural: boolean;
+    indent: number | string;
+    newline: string;
+    finalNewline: boolean;
+}
+
 interface TestCaseOutput {
     name?: string,
-    compare: Compare<string>,
+    compare?: Compare<string>,
+    options?: Partial<SortOptions>,
     output: string,
 }
 
@@ -13,8 +23,6 @@ interface TestCase {
     input: string,
     outputs: Array<TestCaseOutput>,
 }
-
-type TestCases = Array<TestCase>;
 
 const generateDoNothingTestCase = (value: string): TestCase => {
     return {
@@ -25,7 +33,7 @@ const generateDoNothingTestCase = (value: string): TestCase => {
                 compare,
                 output: value,
             };
-        }),
+        }) as Array<TestCaseOutput>,
     };
 };
 
@@ -38,12 +46,27 @@ const primitiveValues = [
     true,
     false,
     '',
+    '"',
     0,
     Number.MAX_SAFE_INTEGER,
     Number.EPSILON,
 ];
 
-const testCases: TestCases = [
+const testCases: Array<TestCase> = [
+    generateDoNothingTestCase(`""\n\r`),
+    generateDoNothingTestCase(`{\n  "a": 1\n}\n`),
+    generateDoNothingTestCase(`[
+    {
+        "a": [
+            1,
+            {
+                "b": 2
+            },
+            3
+        ]
+    }
+]
+`),
     generateDoNothingTestCase(`""\n\r`),
     generateDoNothingTestCase(`{\n  "a": 1\n}\n`),
     ...generateDoNothingTestCases([
@@ -54,6 +77,16 @@ const testCases: TestCases = [
         ...primitiveValues.map(value => ({value})),
     ].map(value => JSON.stringify(value))),
     generateDoNothingTestCase(`{"a":1,"a":2}`),
+    {
+        name: 'Default options',
+        input: `[{"a":1,"b":2}]`,
+        outputs: [
+            {
+                name: 'alphabeticalSort by default',
+                output: `[{"a":1,"b":2}]`,
+            },
+        ],
+    },
     {
         name: 'Object inside Array',
         input: `[{"a":1,"b":2}]`,
@@ -166,32 +199,108 @@ const testCases: TestCases = [
                 output: `{"b":"b","B":"B","a":"a","A":"A","10":10,"5":5,"1":1}`,
             },
         ]
-    }
-];
-
-testCases.length = 0;
-testCases.push(
-  generateDoNothingTestCase(`""\n\r`),
-  generateDoNothingTestCase(`{\n  "a": 1\n}\n`),
-  generateDoNothingTestCase(`[
+    },
     {
-        "a": [
-            1,
+        input: `{"1":1,"10":10,"5":5,"b":"b","a":"a","A":"A","B":"B"}`,
+        outputs: [
             {
-                "b": 2
+                options: {
+                    caseInsensitive: false,
+                    natural: false,
+                    reverse: false,
+                },
+                output: `{"1":1,"10":10,"5":5,"A":"A","B":"B","a":"a","b":"b"}`,
             },
-            3
+            {
+                options: {
+                    caseInsensitive: true,
+                    natural: false,
+                    reverse: false,
+                },
+                output: `{"1":1,"10":10,"5":5,"a":"a","A":"A","b":"b","B":"B"}`,
+            },
+            {
+                options: {
+                    caseInsensitive: false,
+                    natural: false,
+                    reverse: true,
+                },
+                output: `{"b":"b","a":"a","B":"B","A":"A","5":5,"10":10,"1":1}`,
+            },
+            {
+                options: {
+                    caseInsensitive: true,
+                    natural: false,
+                    reverse: true,
+                },
+                output: `{"b":"b","B":"B","a":"a","A":"A","5":5,"10":10,"1":1}`,
+            },
+            {
+                options: {
+                    caseInsensitive: false,
+                    natural: true,
+                    reverse: false,
+                },
+                output: `{"1":1,"5":5,"10":10,"A":"A","B":"B","a":"a","b":"b"}`,
+            },
+            {
+                options: {
+                    caseInsensitive: true,
+                    natural: true,
+                    reverse: false,
+                },
+                output: `{"1":1,"5":5,"10":10,"a":"a","A":"A","b":"b","B":"B"}`,
+            },
+            {
+                options: {
+                    caseInsensitive: false,
+                    natural: true,
+                    reverse: true,
+                },
+                output: `{"b":"b","a":"a","B":"B","A":"A","10":10,"5":5,"1":1}`,
+            },
+            {
+                options: {
+                    caseInsensitive: true,
+                    natural: true,
+                    reverse: true,
+                },
+                output: `{"b":"b","B":"B","a":"a","A":"A","10":10,"5":5,"1":1}`,
+            },
         ]
-    }
-]
-`),
-);
+    },
+    {
+        name: 'Custom indent',
+        input: `[{"a":1,"b":2}]`,
+        outputs: [
+            {
+                options: {
+                    indent: '  '
+                },
+                name: 'alphabeticalSort by default',
+                output: `[
+  {
+    "a": 1,
+    "b": 2
+  }
+]`,
+            },
+        ],
+    },
+];
 
 testCases.forEach((testCase, index) => {
     describe(testCase.name || `Test Case #${index + 1}`, () => {
-        testCase.outputs.forEach(({name, output, compare}) => {
-            it(name || compare.name, () => {
-                const result = jsonSort(testCase.input, {compare});
+        testCase.outputs.forEach(({name, output, compare, options}) => {
+            it(name || compare?.name || 'undefined', () => {
+                const args: [input: string, options?: any] = [testCase.input];
+                if (compare) {
+                    args.push({compare});
+                }
+                if (options) {
+                    args.push({...options});
+                }
+                const result = jsonSort.apply(null, args);
                 expect(result).toBe(output);
             });
         });
